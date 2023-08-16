@@ -8,6 +8,7 @@
 
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <ESP8266HTTPClient.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <ArduinoJson.h>
@@ -36,6 +37,8 @@ Configuration config;
 ESP8266WebServer server;
 OneWire oneWire(SENSOR);
 DallasTemperature sensors(&oneWire);
+HTTPClient http;
+WiFiClient wifiClient;
 
 Relay relay1(RELAY1, LOW, true);
 Relay relay2(RELAY2, LOW, true);
@@ -153,7 +156,19 @@ void setupServer() {
   });
 
   server.on("/", []() {
-    server.send(200, "text/html", "");
+    http.begin(wifiClient, "https://raw.githubusercontent.com/murilogteixeira/fan_manager/main/data/status.html");
+    int httpCode = http.GET();
+
+    if(httpCode < 1) {
+      Serial.println("request error - " + httpCode);
+      return;
+    }
+
+    if(httpCode != HTTP_CODE_OK) return;
+    String payload = http.getString();
+    http.end();
+
+    server.send(httpCode, "text/html", payload.c_str());
   });
 
   // 404

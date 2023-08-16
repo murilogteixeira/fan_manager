@@ -46,7 +46,7 @@
             const relay2State = document.getElementById("relay2-state");
 
             loadJSON(
-                'http://fan_manager.local/status',
+                '/status',
                 (data) => {
                     sensor1Temp.textContent = data["sensors"][0];
                     sensor2Temp.textContent = data["sensors"][1];
