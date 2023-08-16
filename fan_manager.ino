@@ -9,6 +9,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <ArduinoJson.h>
@@ -38,7 +39,6 @@ ESP8266WebServer server;
 OneWire oneWire(SENSOR);
 DallasTemperature sensors(&oneWire);
 HTTPClient http;
-WiFiClient wifiClient;
 
 Relay relay1(RELAY1, LOW, true);
 Relay relay2(RELAY2, LOW, true);
@@ -156,7 +156,10 @@ void setupServer() {
   });
 
   server.on("/", []() {
-    http.begin(wifiClient, "https://raw.githubusercontent.com/murilogteixeira/fan_manager/main/data/status.html");
+    WiFiClientSecure client;
+    client.setInsecure();
+
+    http.begin(client, "https://raw.githubusercontent.com/murilogteixeira/fan_manager/main/data/status.html");
     int httpCode = http.GET();
 
     if(httpCode < 1) {
@@ -184,18 +187,15 @@ void handleTemperatures() {
   if (millis() - lastCheckTemp < checkInterval) return;
   lastCheckTemp = millis();
 
-  Serial.print("Requesting temperatures... ");
+  // Request sensors data
   sensors.requestTemperatures();
-  Serial.println("Ready!");
 
-  // Get devices count
   int deviceCount = sensors.getDeviceCount();
   float temp[deviceCount];
 
   // Save the current temperatures
   for (int i = 0; i < deviceCount; i++) {
     temp[i] = sensors.getTempCByIndex(i);
-    Serial.printf("Sensor %d - Temp: %.2f\n", i + 1, temp);
     statusJson["sensors"][String(i)] = temp[i];
   }
 

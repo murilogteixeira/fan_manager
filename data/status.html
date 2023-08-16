@@ -48,8 +48,8 @@
             loadJSON(
                 '/status',
                 (data) => {
-                    sensor1Temp.textContent = data["sensors"][0];
-                    sensor2Temp.textContent = data["sensors"][1];
+                    sensor1Temp.textContent = parseFloat(data["sensors"][0]).toFixed(1) + 'º';
+                    sensor2Temp.textContent = parseFloat(data["sensors"][1]).toFixed(1) + 'º';
                     relay1State.textContent = data["relays"][0];
                     relay2State.textContent = data["relays"][1];
                 },
