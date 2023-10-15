@@ -21,10 +21,10 @@
 String host = "fan_manager";
 char ssid[] = "MURILO";
 char password[] = "94658243";
-const float maxTemp = 31;
+const float maxTemp = 36;
 const int oneMinute = 1000 * 60;
-const int tempCheckInterval = oneMinute;
-const int activeTimeWhenIsOn = oneMinute * 3;
+const int tempCheckInterval = oneMinute * 2.5;
+const int activeTimeWhenIsOn = oneMinute * 5;
 const int checkInterval = 1000;
 
 unsigned long lastCheckTemp = checkInterval;
@@ -130,17 +130,29 @@ void setupServer() {
   });
 
   // RELAY
-  // server.on("/relay", []() {
-  //   relay.toggleHandler(&server);
-  // });
+  server.on("/relay", []() {
+    if (server.arg("relay") != "" && server.arg("state") != "") {
+      int index = server.arg("relay").toInt();
+      String state = server.arg("state");
 
-  server.on("/relayOff", []() {
+      if(state == "true") relays[index].on();
+      } else {
+        relays[index].off();
+      }
+
+      server.send(200, "text/plain", "{ relay: { index: " + String(index) + ", isOn: " + relays[index].getState() + "}}");
+    } else {
+      server.send(400, "text/plain", "Parameter \'relay\' not found");
+    }
+  });
+
+  server.on("/relayOn", []() {
     relay1.on();
     relay2.on();
     server.send(200);
   });
 
-  server.on("/relayOn", []() {
+  server.on("/relayOff", []() {
     relay1.off();
     relay2.off();
     server.send(200);
@@ -162,12 +174,12 @@ void setupServer() {
     http.begin(client, "https://raw.githubusercontent.com/murilogteixeira/fan_manager/main/data/status.html");
     int httpCode = http.GET();
 
-    if(httpCode < 1) {
+    if (httpCode < 1) {
       Serial.println("request error - " + httpCode);
       return;
     }
 
-    if(httpCode != HTTP_CODE_OK) return;
+    if (httpCode != HTTP_CODE_OK) return;
     String payload = http.getString();
     http.end();
 

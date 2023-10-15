@@ -1,0 +1,1 @@
+curl -v -F "image=@$(find . -name '*.bin')" http://fan_manager.local:80/ota/update
