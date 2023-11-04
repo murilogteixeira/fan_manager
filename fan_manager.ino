@@ -136,11 +136,9 @@ void setupServer() {
       String state = server.arg("state");
 
       if(state == "true") relays[index].on();
-      } else {
-        relays[index].off();
-      }
+      else relays[index].off();
 
-      server.send(200, "text/plain", "{ relay: { index: " + String(index) + ", isOn: " + relays[index].getState() + "}}");
+      server.send(200, "text/plain", "{ relay: { index: " + String(index) + ", isOn: " + String(relays[index].getState()) + "}}");
     } else {
       server.send(400, "text/plain", "Parameter \'relay\' not found");
     }
